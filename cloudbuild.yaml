@@ -1,0 +1,40 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/mlops-project-444315/advertising-roi-model/advertising_roi",
+        ".",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/mlops-project-444315/advertising-roi-model/advertising_roi",
+      ]
+
+  - name: "us-central1-docker.pkg.dev/mlops-project-444315/advertising-roi-model/advertising_roi"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        python -m pytest
+
+  - name: "gcr.io/cloud-builders/git"
+    args: ["clone", "https://github.com/muhanangmahrub/model-training-repo.git"]
+
+  - name: "gcr.io/cloud-builders/gsutil"
+    args:
+      [
+        "cp",
+        "model-training-repo/advertising_model_training.py",
+        "us-central1-mlops-airflow-a20d3031-bucket/dags",
+      ]
+
+images:
+  - "us-central1-docker.pkg.dev/mlops-project-444315/advertising-roi-model/advertising_roi"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
